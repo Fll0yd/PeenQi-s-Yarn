@@ -4,6 +4,7 @@ from src.tile import Tile
 from src.player import Player
 from src.debug import debug
 
+from pytmx.util_pygame import load_pygame
 
 class Level:
     def __init__(self):
@@ -15,29 +16,36 @@ class Level:
         self.create_map()
 
     def create_map(self):
-        rock_surface = pygame.image.load(
-            GRAPHICS_DIR / "test" / "rock.png"
-        ).convert_alpha()
+        tmx_data = load_pygame(MAPS_DIR / "world.tmx")
 
-        for row_index, row in enumerate(WORLD_MAP):
-            for col_index, col in enumerate(row):
-                x = col_index * TILESIZE
-                y = row_index * TILESIZE
+        print("TMX Loaded!")
+        print(tmx_data)
+        print("Map Size:", tmx_data.width, "x", tmx_data.height)
 
-                if col == "x":
-                    Tile(
-                        (x, y),
-                        [self.visible_sprites, self.obstacle_sprites],
-                        "object",
-                        rock_surface,
-                    )
+        for layer in tmx_data.visible_layers:
+            if hasattr(layer, "data"):
+                for x, y, gid in layer:
+                    surface = tmx_data.get_tile_image_by_gid(gid)
 
-                if col == "p":
-                    self.player = Player(
-                        (x, y),
-                        [self.visible_sprites],
-                        self.obstacle_sprites,
-                    )
+                    if surface:
+                        Tile(
+                            (x * TILESIZE, y * TILESIZE),
+                            [self.visible_sprites],
+                            "ground",
+                            surface,
+                        )
+
+        for obj in tmx_data.objects:
+            if obj.name == "Player":
+                print(f"Spawning Player at ({obj.x}, {obj.y})")
+
+                self.player = Player(
+                    (obj.x, obj.y),
+                    [self.visible_sprites],
+                    self.obstacle_sprites,
+                )
+
+                print("Player rect center:", self.player.rect.center)
 
     def run(self):
         self.visible_sprites.custom_draw(self.player)
@@ -57,6 +65,14 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.offset.x = player.rect.centerx - self.half_width
         self.offset.y = player.rect.centery - self.half_height
 
+        # draw ground first
+        for sprite in self.sprites():
+            if sprite.sprite_type == "ground":
+                offset_pos = sprite.rect.topleft - self.offset
+                self.display_surface.blit(sprite.image, offset_pos)
+
+        # draw everything else with Y-sort
         for sprite in sorted(self.sprites(), key=lambda sprite: sprite.rect.centery):
-            offset_pos = sprite.rect.topleft - self.offset
-            self.display_surface.blit(sprite.image, offset_pos)
+            if sprite.sprite_type != "ground":
+                offset_pos = sprite.rect.topleft - self.offset
+                self.display_surface.blit(sprite.image, offset_pos)

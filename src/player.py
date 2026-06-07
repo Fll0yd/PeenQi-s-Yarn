@@ -4,6 +4,7 @@ from src.settings import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, groups, obstacle_sprites):
+        self.sprite_type = "player"
         super().__init__(groups)
 
         self.image = pygame.image.load(
