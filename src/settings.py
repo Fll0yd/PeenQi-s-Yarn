@@ -1,7 +1,7 @@
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-GRAPHICS_DIR = BASE_DIR / "graphics"
+GRAPHICS_DIR = BASE_DIR / "assets" / "graphics"
 ASSETS_DIR = BASE_DIR / "assets"
 MAPS_DIR = ASSETS_DIR / "maps"
 
@@ -9,7 +9,9 @@ MAPS_DIR = ASSETS_DIR / "maps"
 WIDTH = 1280
 HEIGHT = 720
 FPS = 60
-TILESIZE = 64
+TILESIZE = 32
+MAP_SCALE = 2
+SCALED_TILESIZE = TILESIZE * MAP_SCALE
 
 WORLD_MAP = [
 ['x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x','x'],
